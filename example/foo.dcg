@@ -1,0 +1,15 @@
+namespace a.b
+
+struct A {
+    a : foo
+    b : Unit
+    c : String
+}
+
+enum a {
+    a : foo
+    b : Unit
+    c : List<String>
+    d : Map<String A>
+}
+

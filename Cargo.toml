@@ -1,0 +1,9 @@
+[workspace]
+members = [
+	"ast",
+	"dcg",
+	"dcg-cpp",
+	"dcg-rust",
+	"parser"
+]
+
