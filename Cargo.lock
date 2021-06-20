@@ -19,6 +19,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "app_common"
+version = "0.1.0"
+dependencies = [
+ "ast",
+ "clap",
+ "serde_json",
+]
+
+[[package]]
 name = "ast"
 version = "0.1.0"
 dependencies = [
@@ -127,6 +136,7 @@ dependencies = [
 name = "dcg-cpp"
 version = "0.1.0"
 dependencies = [
+ "app_common",
  "clap",
 ]
 
@@ -134,7 +144,7 @@ dependencies = [
 name = "dcg-rust"
 version = "0.1.0"
 dependencies = [
- "clap",
+ "app_common",
 ]
 
 [[package]]

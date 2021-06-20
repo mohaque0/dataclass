@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 clap = "2.33.3"
+
+app_common = { path = "../app_common" }

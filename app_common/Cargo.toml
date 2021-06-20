@@ -1,5 +1,5 @@
 [package]
-name = "dcg-rust"
+name = "app_common"
 version = "0.1.0"
 authors = ["mohaque <44129090+mohaque0@users.noreply.github.com>"]
 edition = "2018"
@@ -7,4 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-app_common = { path = "../app_common" }
+clap = "2.33.3"
+serde_json = "1.0.64"
+
+ast = { path = "../ast" }

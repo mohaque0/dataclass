@@ -1,6 +1,7 @@
 [workspace]
 members = [
 	"ast",
+	"app_common",
 	"dcg",
 	"dcg-cpp",
 	"dcg-rust",
