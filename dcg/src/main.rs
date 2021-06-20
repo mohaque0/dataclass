@@ -1,12 +1,9 @@
 mod generator;
-mod tree_format;
 
 use std::{fmt::Display, path::PathBuf};
 use clap::{App, Arg};
 use parser::Rule;
 use pest::{Parser};
-
-use crate::tree_format::display_debug_ast;
 
 struct AppConfig {
     generators: Vec<String>,
@@ -139,14 +136,14 @@ The executable should take as arguments a port and the output dir. The JSON-ifie
         file_contents.iter().for_each(|f| {
             let pairs = parser::RawParser::parse(Rule::file, f)
                 .unwrap_or_else(|e| panic!("{}", e));
-            tree_format::display_debug_parse_tree(&pairs)
+            app_common::tree_format::display_debug_parse_tree(&pairs)
         });
     }
 
     let ast = parser::parse(&file_contents);
     if config.debug_ast {
         println!("Debug AST:");
-        display_debug_ast(&ast);
+        app_common::tree_format::display_debug_ast(&ast);
     }
 
     println!("{}", serde_json::to_string_pretty(&ast).unwrap());

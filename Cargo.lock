@@ -24,6 +24,10 @@ version = "0.1.0"
 dependencies = [
  "ast",
  "clap",
+ "colored",
+ "parser",
+ "pest",
+ "regex",
  "serde_json",
 ]
 
@@ -122,6 +126,7 @@ checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
 name = "dcg"
 version = "0.1.0"
 dependencies = [
+ "app_common",
  "ast",
  "clap",
  "colored",

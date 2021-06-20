@@ -1,3 +1,5 @@
+pub mod tree_format;
+
 use std::{io::Read, net::TcpStream, num::ParseIntError, path::PathBuf};
 
 use clap::{App, Arg};
@@ -61,6 +63,8 @@ fn process_stream(config: AppConfig) -> Result<ast::Root, AppError> {
     println!("Read {} bytes.", nread);
 
     let ast = serde_json::from_str::<ast::Root>(&str)?;
+
+    tree_format::display_debug_ast(&ast);
 
     Ok(ast)
 }
