@@ -1,7 +1,7 @@
 use app_common::AppError;
 
 fn app() -> Result<(), AppError> {
-    app_common::get_ast("dcg-cpp", "DataClass CPP Generator")?;
+    app_common::get_ast("dcg-rust", "DataClass Rust Generator")?;
     Ok(())
 }
 
