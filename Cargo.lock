@@ -106,6 +106,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "codegen"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "regex",
+]
+
+[[package]]
 name = "colored"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,7 +150,6 @@ name = "dcg-cpp"
 version = "0.1.0"
 dependencies = [
  "app_common",
- "clap",
 ]
 
 [[package]]

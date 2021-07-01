@@ -2,6 +2,7 @@
 members = [
 	"ast",
 	"app_common",
+	"codegen",
 	"dcg",
 	"dcg-cpp",
 	"dcg-rust",
