@@ -1,0 +1,44 @@
+file = { SOI ~ namespace ~ type_def_list ~ EOI }
+
+namespace = { "namespace" ~ qualified_name }
+
+type_ref = { qualified_name ~ type_params? }
+
+type_params = { "<" ~ type_ref+ ~ ">" }
+
+type_def = { ( struct_def | enum_def ) }
+
+type_def_list = _{ type_def* }
+
+struct_def = { "struct" ~ ident ~ "{" ~ field_list ~ "}" }
+
+enum_def = { "enum" ~ ident ~ "{" ~ field_list ~ "}" }
+
+field = { ident ~ ":" ~ type_ref }
+
+field_list = _{ field* }
+
+primitive = { (
+    "Unit" |
+    "Bool" |
+    "Int8" |
+    "Int16" |
+    "Int32" |
+    "Int64" |
+    "UInt8" |
+    "UInt16" |
+    "UInt32" |
+    "UInt64" |
+    "Float32" |
+    "Float64" |
+    "String"
+) }
+
+qualified_name = ${ident ~ ("." ~ ident)*}
+
+ident = { (alpha | digit | "_")+ }
+
+alpha = _{ 'a'..'z' | 'A'..'Z' }
+digit = _{ '0'..'9' }
+
+WHITESPACE = _{ (" " | "\t" | "\n" | "\r")+ }
