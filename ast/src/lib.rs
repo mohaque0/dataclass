@@ -2,8 +2,10 @@
 #[macro_use] extern crate getset;
 extern crate serde;
 
+mod context;
 mod name;
 
+pub use context::Context;
 pub use name::Name;
 pub use name::QualifiedName;
 
