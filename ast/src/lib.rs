@@ -6,6 +6,7 @@ mod context;
 mod name;
 
 pub use context::Context;
+pub use context::TypeId;
 pub use name::Name;
 pub use name::QualifiedName;
 
