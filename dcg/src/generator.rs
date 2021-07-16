@@ -34,9 +34,7 @@ impl Generator {
         let mut cmd = Command::new(&self.cmd);
         cmd
             .arg(format!("{}", addr.port()))
-            .arg(format!("{}", output.as_os_str().to_str().expect("Unknown error handling output path.")))
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped());
+            .arg(format!("{}", output.as_os_str().to_str().expect("Unknown error handling output path.")));
         
         println!("Generator Command Line: {:?}", cmd);
 
@@ -67,23 +65,7 @@ impl Generator {
             }
         }
 
-        match process.stdout.take() {
-            Some(mut stdout) => {
-                let mut stdout_string = String::new();
-                stdout.read_to_string(&mut stdout_string)?;
-                println!("Generator Stdout:\n{}", stdout_string);
-            },
-            None => println!("Unable to get generator stdout.")
-        }
-
-        match process.stderr.take() {
-            Some(mut stderr) => {
-                let mut stderr_string = String::new();
-                stderr.read_to_string(&mut stderr_string)?;
-                println!("Generator Stderr:\n{}", stderr_string);
-            },
-            None => println!("Unable to get generator stderr.")
-        }
+        process.wait()?;
 
         Ok(())
     }
