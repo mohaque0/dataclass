@@ -77,7 +77,6 @@ impl Snippet {
 
     pub fn gen(&self) -> String {
         let mut code = self.code.clone();
-        let re_indent = Regex::new(r"\n([ \t]*).*$").unwrap();
         
         // TODO: less dupliation
         for (param, value) in &self.repl {
@@ -91,23 +90,14 @@ impl Snippet {
             ms.reverse();
 
             for m in ms {
-                let indent = {
-                    let beginning_of_string = &code[0..m.start];
-                    if let Some(captures) = re_indent.captures(beginning_of_string) {
-                        if captures.len() >= 2 {
-                            captures.get(1).unwrap().as_str()
-                        } else {
-                            ""
-                        }
-                    } else {
-                        ""
-                    }
-                };
+                let indent = Self::indent_of_match(&m, &code);
+                let indent = format!("\n{}", indent);
+                let param_replacement = value.gen();
+                let param_replacement = param_replacement.replace("\n", indent.as_str());
 
                 code.replace_range(
                     m.start..m.end,
-                    value.gen().as_str()
-                        .replace("\n", format!("\n{}", indent).as_str()).as_str()
+                    param_replacement.as_str()
                 )
             }
         }
@@ -124,28 +114,34 @@ impl Snippet {
             ms.reverse();
 
             for m in ms {
-                let indent = {
-                    let beginning_of_string = &code[0..m.start];
-                    if let Some(captures) = re_indent.captures(beginning_of_string) {
-                        if captures.len() >= 2 {
-                            captures.get(1).unwrap().as_str()
-                        } else {
-                            ""
-                        }
-                    } else {
-                        ""
-                    }
-                };
+                let indent = Self::indent_of_match(&m, &code);
+                let indent = format!("\n{}", indent);
+                let param_replacement = generator.apply(value);
+                let param_replacement = param_replacement.replace("\n", indent.as_str());
 
                 code.replace_range(
                     m.start..m.end,
-                    generator.apply(value).as_str()
-                        .replace("\n", format!("\n{}", indent).as_str()).as_str()
+                    param_replacement.as_str()
                 )
             }
         }
 
         code
+    }
+
+    fn indent_of_match(m: &MatchData, code: &String) -> String
+    {
+        let re_indent : Regex = Regex::new(r"\n([ \t]*).*$").unwrap();
+        let beginning_of_string = &code[0..m.start];
+        return if let Some(captures) = re_indent.captures(beginning_of_string) {
+            if captures.len() >= 2 {
+                String::from(captures.get(1).unwrap().as_str())
+            } else {
+                String::new()
+            }
+        } else {
+            String::new()
+        }
     }
 }
 
