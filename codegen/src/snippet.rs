@@ -84,7 +84,7 @@ impl Snippet {
             let re = Regex::new(format!("{}", param).as_str()).unwrap();
             
             let mut ms: Vec<MatchData> =
-                re.find_iter(self.code.as_str())
+                re.find_iter(code.as_str())
                     .map(|m| MatchData::new(m.start(), m.end()))
                     .collect();
 
@@ -117,7 +117,7 @@ impl Snippet {
             let generator = self.param_lists.get(param).unwrap();
             
             let mut ms: Vec<MatchData> =
-                re.find_iter(self.code.as_str())
+                re.find_iter(code.as_str())
                     .map(|m| MatchData::new(m.start(), m.end()))
                     .collect();
 
