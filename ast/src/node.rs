@@ -57,10 +57,18 @@ pub struct Field {
     type_: TypeRef
 }
 
+#[derive(Copy, Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TypeId(usize);
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum TypeRef {
+    ByName(TypeRefByName),
+    ById(TypeId)
+}
 
 #[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Serialize, Deserialize)]
 #[get="pub"]
-pub struct TypeRef {
+pub struct TypeRefByName {
     name: QualifiedName,
     params: Vec<Box<TypeRef>>
 }
@@ -80,4 +88,10 @@ pub enum Primitive {
     Float32,
     Float64,
     String
+}
+
+impl TypeId {
+    pub fn id(&self) -> usize {
+        return self.0;
+    }
 }

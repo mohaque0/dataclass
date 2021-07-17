@@ -7,7 +7,6 @@ mod name;
 mod node;
 
 pub use context::Context;
-pub use context::TypeId;
 pub use name::Name;
 pub use name::QualifiedName;
 pub use node::*;

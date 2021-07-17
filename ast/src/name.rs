@@ -15,7 +15,7 @@ pub struct Name {
     case: NameCase
 }
 
-#[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[get]
 pub struct QualifiedName {
     names: Vec<Name>

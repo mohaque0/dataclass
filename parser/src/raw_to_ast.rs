@@ -31,10 +31,10 @@ fn convert_type_params(pair: Pair<Rule>) -> Vec<Box<TypeRef>> {
 fn convert_type_ref(pair: Pair<Rule>) -> TypeRef {
     let mut pairs = pair.into_inner();
 
-    TypeRef::new(
+    TypeRef::ByName(TypeRefByName::new(
         convert_qualified_name(pairs.next().unwrap()),
         pairs.next().map(convert_type_params).unwrap_or(vec![])
-    )
+    ))
 }
 
 fn convert_field(pair: Pair<Rule>) -> Field {
