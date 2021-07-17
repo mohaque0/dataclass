@@ -179,6 +179,18 @@ mod tests {
             .with_list("#FIELDS_INIT", vec![Snippet::new("_a(a)"), Snippet::new("_b(b)")])
         ;
 
-        println!("{}", c.gen());
+        let generated = c.gen();
+        println!("{}", generated);
+
+        assert_eq!(
+"MYNS1::MYNS2::my_class(
+    a,
+    b
+)
+    :
+    _a(a),
+    _b(b)
+{}",
+        generated);
     }
 }
