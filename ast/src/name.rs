@@ -16,7 +16,7 @@ pub struct Name {
 }
 
 #[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[get]
+#[get="pub"]
 pub struct QualifiedName {
     names: Vec<Name>
 }

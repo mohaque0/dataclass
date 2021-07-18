@@ -47,7 +47,6 @@ pub struct Enum {
     fields: Vec<Field>
 }
 
-
 #[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Serialize, Deserialize)]
 #[get="pub"]
 pub struct Field {
@@ -57,7 +56,7 @@ pub struct Field {
     type_: TypeRef
 }
 
-#[derive(Copy, Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Constructor, Copy, Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TypeId(usize);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -70,6 +69,13 @@ pub enum TypeRef {
 #[get="pub"]
 pub struct TypeRefByName {
     name: QualifiedName,
+    params: Vec<Box<TypeRef>>
+}
+
+#[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Serialize, Deserialize)]
+#[get="pub"]
+pub struct TypeRefById {
+    id: TypeId,
     params: Vec<Box<TypeRef>>
 }
 
