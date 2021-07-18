@@ -62,7 +62,7 @@ pub struct TypeId(usize);
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TypeRef {
     ByName(TypeRefByName),
-    ById(TypeId)
+    ById(TypeRefById)
 }
 
 #[derive(Constructor, Clone, Getters, CopyGetters, Setters, Debug, PartialEq, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Field, Struct, Type, TypeRef};
+use crate::{Field, Struct, Type, TypeRef, TypeRefById};
 use crate::{QualifiedName, TypeDef, TypeId, node};
 use serde::Serialize;
 use serde::Deserialize;
@@ -205,12 +205,23 @@ impl Context {
     }
 
     fn replace_refbyname_with_refbyid_in_ref(&self, ctx_namespace: &QualifiedName, typeref: &node::TypeRef) -> node::TypeRef {
-        // TODO: handle params
         match typeref {
             TypeRef::ByName(name) => TypeRef::ById(
-                self.resolve_name(ctx_namespace, name.name()).id().unwrap()
+                TypeRefById::new(
+                    self.resolve_name(ctx_namespace, name.name()).id().unwrap(),
+                    name.params().iter()
+                        .map(|it| Box::new(self.replace_refbyname_with_refbyid_in_ref(ctx_namespace, it)))
+                        .collect()
+                )
             ),
-            TypeRef::ById(id) => TypeRef::ById(id.clone()),
+            TypeRef::ById(id) => TypeRef::ById(
+                TypeRefById::new(
+                    id.id().clone(),
+                    id.params().iter()
+                        .map(|it| Box::new(self.replace_refbyname_with_refbyid_in_ref(ctx_namespace, it)))
+                        .collect()
+                )
+            ),
         }
     }
 }

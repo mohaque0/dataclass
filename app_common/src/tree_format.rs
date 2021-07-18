@@ -21,6 +21,7 @@ pub enum DisplayableAST<'a> {
     Field(&'a Field),
     TypeRef(&'a TypeRef),
     TypeRefByName(&'a TypeRefByName),
+    TypeRefById(&'a TypeRefById),
     TypeId(&'a TypeId),
     Primitive(&'a Primitive)
 }
@@ -112,6 +113,7 @@ impl DisplayableNode for DisplayableAST<'_> {
             DisplayableAST::Primitive(p) => format!("Primitive({:?})", p),
             DisplayableAST::TypeRef(_) => format!("TypeRef"),
             DisplayableAST::TypeRefByName(r) => format!("ByName({})", r.name().to_string()),
+            DisplayableAST::TypeRefById(id) => format!("ById({})", id.id().id()),
             DisplayableAST::TypeId(id) => format!("ById({})", id.id()),
         }
     }
@@ -133,9 +135,10 @@ impl DisplayableNode for DisplayableAST<'_> {
             DisplayableAST::Primitive(_) => vec![],
             DisplayableAST::TypeRef(t) => match t {
                 TypeRef::ByName(r) => vec![DisplayableAST::TypeRefByName(r)],
-                TypeRef::ById(id) => vec![DisplayableAST::TypeId(id)]
+                TypeRef::ById(id) => vec![DisplayableAST::TypeRefById(id)]
             },
             DisplayableAST::TypeRefByName(t) => t.params().iter().map(Box::as_ref).map(DisplayableAST::TypeRef).collect(),
+            DisplayableAST::TypeRefById(id) => id.params().iter().map(Box::as_ref).map(DisplayableAST::TypeRef).collect(),
             DisplayableAST::TypeId(_) => vec![],
         }
     }
