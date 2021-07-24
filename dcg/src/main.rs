@@ -1,6 +1,7 @@
 mod generator;
 
 use std::{fmt::Display, path::PathBuf};
+use ast::Context;
 use clap::{App, Arg};
 use parser::Rule;
 use pest::{Parser};
@@ -10,7 +11,8 @@ struct AppConfig {
     output_dir: PathBuf,
     files: Vec<PathBuf>,
     debug_parse: bool,
-    debug_ast: bool
+    debug_ast: bool,
+    debug_context: bool
 }
 
 #[derive(Debug)]
@@ -45,6 +47,7 @@ fn process_args(args: App) -> Result<AppConfig, ArgError> {
     let files = args.values_of("FILE").ok_or("No input files specified.")?;
     let debug_parse = args.is_present("debug-parse");
     let debug_ast = args.is_present("debug-ast");
+    let debug_context = args.is_present("debug-context");
 
     let generators = generators.map(String::from).collect();
     let output_dir = PathBuf::from(output_dir);
@@ -55,7 +58,8 @@ fn process_args(args: App) -> Result<AppConfig, ArgError> {
         output_dir,
         files,
         debug_parse,
-        debug_ast
+        debug_ast,
+        debug_context
     })
 }
 
@@ -98,6 +102,11 @@ The executable should take as arguments a port and the output dir. The JSON-ifie
             Arg::with_name("debug-ast")
                 .long("debug-ast")
                 .help("Display debug AST.")
+        )
+        .arg(
+            Arg::with_name("debug-context")
+                .long("debug-context")
+                .help("Display debug context.")
         )
         .arg(
             Arg::with_name("FILE")
@@ -146,10 +155,15 @@ The executable should take as arguments a port and the output dir. The JSON-ifie
         app_common::tree_format::display_debug_ast(&ast);
     }
 
-    println!("{}", serde_json::to_string_pretty(&ast).unwrap());
+    let ctx = Context::from(&ast);
+    if config.debug_context {
+        println!("Debug Context:");
+        println!("{}", serde_json::to_string_pretty(&ctx).unwrap());    
+    }
+
 
     for gen in &config.generators {
-        if let Err(e) = generator::Generator::from(gen).run(&ast, &config.output_dir) {
+        if let Err(e) = generator::Generator::from(gen).run(&ctx, &config.output_dir) {
             println!("Error: {}", e);
         }
     }

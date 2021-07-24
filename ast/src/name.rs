@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Serialize,Deserialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -197,8 +199,8 @@ impl From<Vec<&str>> for QualifiedName {
     }
 }
 
-impl ToString for QualifiedName {
-    fn to_string(&self) -> String {
-        self.names.iter().map(Name::to_string).collect::<Vec<String>>().join(".")
+impl fmt::Display for QualifiedName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("{}", self.names.iter().map(Name::to_string).collect::<Vec<String>>().join(".")))
     }
 }

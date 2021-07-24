@@ -1,6 +1,6 @@
 use std::{io::{Read, Write}, net::TcpListener, path::PathBuf, process::{Command, Stdio}, time::Duration};
 
-use ast::Root;
+use ast::Context;
 
 pub struct Generator {
     cmd: String
@@ -21,7 +21,7 @@ impl Generator {
         panic!("Unable to find generator: {}", gen)
     }
 
-    pub fn run(&self, ast: &Root, output: &PathBuf) -> std::io::Result<()> {
+    pub fn run(&self, ctx: &Context, output: &PathBuf) -> std::io::Result<()> {
         println!("Running Generator: {}", self.cmd);
 
         let socket = TcpListener::bind("127.0.0.1:0")?;
@@ -50,7 +50,7 @@ impl Generator {
             }
 
             let (mut stream, _) = socket.accept()?;
-            stream.write_all(serde_json::to_string(&ast)?.as_bytes())?;
+            stream.write_all(serde_json::to_string(&ctx)?.as_bytes())?;
             drop(stream);
             Ok(())
         };

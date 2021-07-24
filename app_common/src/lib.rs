@@ -54,7 +54,7 @@ fn process_args(args: App) -> Result<AppConfig, AppError> {
     })
 }
 
-fn process_stream(config: AppConfig) -> Result<ast::Root, AppError> {
+fn process_stream(config: AppConfig) -> Result<ast::Context, AppError> {
     let mut stream = TcpStream::connect(format!("127.0.0.1:{}", config.port))?;
 
     let mut str = String::new();
@@ -62,14 +62,14 @@ fn process_stream(config: AppConfig) -> Result<ast::Root, AppError> {
     
     println!("Read {} bytes.", nread);
 
-    let ast = serde_json::from_str::<ast::Root>(&str)?;
+    let ctx = serde_json::from_str::<ast::Context>(&str)?;
 
-    tree_format::display_debug_ast(&ast);
+    println!("{:#}", &ctx);
 
-    Ok(ast)
+    Ok(ctx)
 }
 
-pub fn get_ast(app_name: &str, app_desc: &str) -> Result<ast::Root, AppError> {
+pub fn get_ast(app_name: &str, app_desc: &str) -> Result<ast::Context, AppError> {
     let app = App::new(app_name)
         .version("0.1")
         .about(app_desc)

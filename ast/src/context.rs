@@ -1,32 +1,42 @@
+use core::fmt;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use std::vec;
 
 use crate::{Field, Struct, Type, TypeRef, TypeRefById};
 use crate::{QualifiedName, TypeDef, TypeId, node};
 use serde::Serialize;
 use serde::Deserialize;
 
-#[derive(Serialize, Deserialize)]
 pub struct Context {
     // All type definitions encountered so far.
-    resolved_types: HashMap<TypeId, TypeInfo>,
+    defined_types: HashMap<TypeId, TypeInfo>,
 
-    // Map from name to type id.
-    name_to_type_id: HashMap<QualifiedName, TypeId>,
+    // Map from name to type id. This is every type that was encountered, even if never defined anywhere.
+    named_types: HashMap<QualifiedName, TypeId>,
 
     // Map unknown type names encountered to type definitions that reference them.
-    unresolved_ids: Vec<TypeId>,
+    undefined_ids: Vec<TypeId>,
 
     type_id_generator: TypeIdGenerator
 }
 
-#[derive(Constructor, Getters, Serialize, Deserialize)]
+#[derive(Constructor, Clone, Debug, Getters, Serialize, Deserialize)]
 #[get]
 pub struct TypeInfo {
     name: QualifiedName,
     def: TypeDef
 }
 
-#[derive(Serialize, Deserialize)]
+// Workaround for serde_json that can only handle map keys that are strings: Use an intermediate type.
+#[derive(Debug, Serialize, Deserialize)]
+struct SerializableContext {
+    defined_types: HashMap<usize, TypeInfo>,
+    named_types: HashMap<String, usize>,
+    undefined_ids: Vec<usize>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 struct TypeIdGenerator {
     next_type_id: usize
 }
@@ -42,17 +52,11 @@ pub struct NameResolution {
 impl Context {
     fn new() -> Context {
         Context {
-            resolved_types: HashMap::new(),
-            name_to_type_id: HashMap::new(),
-            unresolved_ids: vec![],
+            defined_types: HashMap::new(),
+            named_types: HashMap::new(),
+            undefined_ids: vec![],
             type_id_generator: TypeIdGenerator::new()
         }
-    }
-
-    pub fn from(ast: &node::Root) -> Context {
-        let mut ctx = Context::new();
-        ctx.add_root(ast);
-        ctx
     }
 
     pub fn resolve_name(&self, ctx_namespace: &QualifiedName, qname: &QualifiedName) -> NameResolution {
@@ -64,13 +68,13 @@ impl Context {
             };
 
         let type_id =
-            self.name_to_type_id
+            self.named_types
                 .get(&qname)
                 .map(TypeId::clone);
 
         let type_def =
             if let Some(id) = type_id {
-                self.resolved_types.get(&id).map(TypeInfo::def).map(TypeDef::clone)
+                self.defined_types.get(&id).map(TypeInfo::def).map(TypeDef::clone)
             } else {
                 None
             };
@@ -83,7 +87,7 @@ impl Context {
     }
 
     pub fn resolve_id(&self, id: &TypeId) -> Option<NameResolution> {
-        let resolved = self.resolved_types.get(id);
+        let resolved = self.defined_types.get(id);
 
         match resolved {
             Some(info) => {
@@ -98,7 +102,7 @@ impl Context {
     }
 
     pub fn unresolved_ids(&self) -> &Vec<TypeId> {
-        &self.unresolved_ids
+        &self.undefined_ids
     }
 
     fn add_root(&mut self, ast: &node::Root) {
@@ -117,10 +121,10 @@ impl Context {
                 .or_else(|| Some(self.type_id_generator.next()))
                 .unwrap();
 
-            self.name_to_type_id.insert(qname.clone(), type_id);
-            self.unresolved_ids.retain(|it| it != &type_id);
+            self.named_types.insert(qname.clone(), type_id);
+            self.undefined_ids.retain(|it| it != &type_id);
             self.add_unresolved_type_references_from_type(namespace, &type_id, typedef.type_());
-            self.resolved_types.insert(
+            self.defined_types.insert(
                 type_id, 
                 TypeInfo::new(
                     qname,
@@ -153,8 +157,8 @@ impl Context {
                 let resolution = self.resolve_name(ctx_namespace, r.name());
                 if resolution.id() == &None {
                     let type_id = self.type_id_generator.next();
-                    self.name_to_type_id.insert(resolution.name, type_id);
-                    self.unresolved_ids.push(type_id)
+                    self.named_types.insert(resolution.name, type_id);
+                    self.undefined_ids.push(type_id)
                 }
 
                 for typeref in r.params() {
@@ -226,6 +230,103 @@ impl Context {
     }
 }
 
+impl From<&node::Root> for Context {
+    fn from(ast: &node::Root) -> Context {
+        let mut ctx = Context::new();
+        ctx.add_root(ast);
+        ctx
+    }
+}
+
+impl Serialize for Context {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: serde::Serializer {
+        SerializableContext::from(self).serialize(serializer)
+    }
+}
+
+impl <'de> Deserialize<'de> for Context {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where D: serde::Deserializer<'de> {
+        Ok(Context::from(&SerializableContext::deserialize(deserializer)?))
+    }
+}
+
+impl fmt::Display for Context {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut defined_type_map = HashMap::new();
+        for (k, v) in &self.defined_types {
+            // TODO: Nicely print all the QualifiedNames in the definition.
+            defined_type_map.insert(format!("{} -> {}", k.id(), v.name()), v.def());
+        }
+
+        let ser_ctx = SerializableContext::from(self);
+
+        let mut ctx_struct = f.debug_struct("Context");
+        ctx_struct
+            .field("defined", &defined_type_map)
+            .field("named", &ser_ctx.named_types)
+            .field("undefined", &ser_ctx.undefined_ids)
+            .finish()
+    }
+}
+
+impl SerializableContext {
+    fn from(ctx: &Context) -> Self {
+        let mut defined_types: HashMap<usize, TypeInfo> = HashMap::new();
+        for (k, v) in &ctx.defined_types {
+            defined_types.insert(k.id(), v.clone());
+        }
+
+        let mut named_types = HashMap::new();
+        for (k, v) in &ctx.named_types {
+            named_types.insert(k.to_string(), v.id());
+        }
+
+        let undefined_ids = ctx.undefined_ids.iter()
+            .map(|id| id.id())
+            .collect();
+
+        Self {
+            defined_types,
+            named_types,
+            undefined_ids
+        }
+    }
+}
+
+impl From<&SerializableContext> for Context {
+    fn from(ser_ctx: &SerializableContext) -> Self {
+        let mut type_id_generator = TypeIdGenerator::new();
+
+        let mut defined_types = HashMap::new();
+        for (k, v) in &ser_ctx.defined_types {
+            type_id_generator.set_next(*k + 1);
+            defined_types.insert(TypeId::new(*k), v.clone());
+        }
+
+        let mut named_types = HashMap::new();
+        for (k, v) in &ser_ctx.named_types {
+            let name_vec: Vec<&str> = k.split(".").collect();
+            type_id_generator.set_next(*v + 1);
+            named_types.insert(QualifiedName::from(name_vec), TypeId::new(*v));
+        }
+
+        let undefined_ids = ser_ctx.undefined_ids.iter()
+            .map(|id| TypeId::new(*id))
+            .collect();
+
+        ser_ctx.undefined_ids.iter().for_each(|id| type_id_generator.set_next(*id + 1));
+
+        Self {
+            defined_types,
+            named_types,
+            undefined_ids,
+            type_id_generator
+        }
+    }
+}
+
 impl TypeIdGenerator {
     fn new() -> TypeIdGenerator {
         TypeIdGenerator {
@@ -237,6 +338,10 @@ impl TypeIdGenerator {
         let type_id = TypeId::new(self.next_type_id);
         self.next_type_id += 1;
         return type_id;
+    }
+
+    fn set_next(&mut self, value: usize) {
+        self.next_type_id = value;
     }
 }
 

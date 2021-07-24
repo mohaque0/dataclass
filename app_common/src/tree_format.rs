@@ -169,3 +169,7 @@ pub fn display_debug_parse_tree(pairs: &Pairs<Rule>) {
 pub fn display_debug_ast(root: &Root) {
     display_debug_tree(&DisplayableAST::Root(root));
 }
+
+pub fn display_debug_context(ctx: &Context) {
+    println!("{}", ctx);
+}
